@@ -13,19 +13,29 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 
-def load_image(filename):
+# def load_image(filename):
+#     ext = splitext(filename)[1]
+#     if ext == '.npy':
+#         return Image.fromarray(np.load(filename))
+#     elif ext in ['.pt', '.pth']:
+#         return Image.fromarray(torch.load(filename).numpy())
+#     else:
+#         return Image.open(filename)
+
+def load_image(filename, mode='L'):
     ext = splitext(filename)[1]
     if ext == '.npy':
-        return Image.fromarray(np.load(filename))
+        return Image.fromarray(np.load(filename)).convert(mode)
     elif ext in ['.pt', '.pth']:
-        return Image.fromarray(torch.load(filename).numpy())
+        return Image.fromarray(torch.load(filename).numpy()).convert(mode)
     else:
-        return Image.open(filename)
-
+        return Image.open(filename).convert(mode)
 
 def unique_mask_values(idx, mask_dir, mask_suffix):
     mask_file = list(mask_dir.glob(idx + mask_suffix + '.*'))[0]
-    mask = np.asarray(load_image(mask_file))
+    # mask = np.asarray(load_image(mask_file))
+    mask = np.asarray(load_image(mask_file, mode='L'))
+
     if mask.ndim == 2:
         return np.unique(mask)
     elif mask.ndim == 3:
@@ -97,8 +107,10 @@ class BasicDataset(Dataset):
 
         assert len(img_file) == 1, f'Either no image or multiple images found for the ID {name}: {img_file}'
         assert len(mask_file) == 1, f'Either no mask or multiple masks found for the ID {name}: {mask_file}'
-        mask = load_image(mask_file[0])
-        img = load_image(img_file[0])
+        # mask = load_image(mask_file[0])
+        # img = load_image(img_file[0])
+        mask = load_image(mask_file[0], mode='L')
+        img = load_image(img_file[0], mode='L')
 
         assert img.size == mask.size, \
             f'Image and mask {name} should be the same size, but are {img.size} and {mask.size}'

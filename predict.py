@@ -74,7 +74,27 @@ def mask_to_image(mask: np.ndarray, mask_values):
         out[mask == i] = v
 
     return Image.fromarray(out)
+# def mask_to_image(mask: np.ndarray, mask_values, color_map=None):
+#     # if color map is none generate a random color map
+#     if color_map is None:
+#         # generate random color map
+#         color_map = {}
+#         for i in range(len(mask_values)):
+#             color_map[i] = np.random.randint(0, 255, size=3)
 
+#     if isinstance(mask_values[0], list):
+#         out = np.zeros((mask.shape[-2], mask.shape[-1], len(mask_values[0])), dtype=np.uint8)
+#     elif mask_values == [0, 1]:
+#         out = np.zeros((mask.shape[-2], mask.shape[-1]), dtype=bool)
+#     else:
+#         out = np.zeros((mask.shape[-2], mask.shape[-1], 3), dtype=np.uint8)
+
+#     if mask.ndim == 3:
+#         mask = np.argmax(mask, axis=0)
+
+#     for i, v in enumerate(mask_values):
+#         out[mask == i] = color_map[i]
+#     return Image.fromarray(out)
 
 if __name__ == '__main__':
     args = get_args()
@@ -83,7 +103,7 @@ if __name__ == '__main__':
     in_files = args.input
     out_files = get_output_filenames(args)
 
-    net = UNet(n_channels=3, n_classes=args.classes, bilinear=args.bilinear)
+    net = UNet(n_channels=1, n_classes=args.classes, bilinear=args.bilinear)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Loading model {args.model}')
@@ -98,7 +118,7 @@ if __name__ == '__main__':
 
     for i, filename in enumerate(in_files):
         logging.info(f'Predicting image {filename} ...')
-        img = Image.open(filename)
+        img = Image.open(filename).convert('L')
 
         mask = predict_img(net=net,
                            full_img=img,
